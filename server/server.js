@@ -4,16 +4,16 @@ const http = require('http');
 const io = require('socket.io');
 const cors = require('cors');
 
-let FETCH_INTERVAL = 5000;
+const FETCH_INTERVAL = { value: 5000, minValue: 1000 };
 const PORT = process.env.PORT || 4000;
 
 const tickers = [
-  'AAPL', // Apple
-  'GOOGL', // Alphabet
-  'MSFT', // Microsoft
-  'AMZN', // Amazon
-  'FB', // Facebook
-  'TSLA', // Tesla
+  { ticker: 'AAPL', color: '#BEE50D' }, // Apple
+  { ticker: 'GOOGL', color: '#4FFB5E' }, // Alphabet
+  { ticker: 'MSFT', color: '#B492CA' }, // Microsoft
+  { ticker: 'AMZN', color: '#B35EDE' }, // Amazon
+  { ticker: 'FB', color: '#8C6D0F' }, // Facebook
+  { ticker: 'TSLA', color: '#DD9284' }, // Tesla
 ];
 
 function randomValue(min = 0, max = 1, precision = 0) {
@@ -34,8 +34,9 @@ function utcDate() {
 }
 
 function getQuotes(socket) {
-  const quotes = tickers.map(ticker => ({
+  const quotes = tickers.map(({ ticker, color }) => ({
     ticker,
+    color,
     exchange: 'NASDAQ',
     price: randomValue(100, 300, 2),
     change: randomValue(0, 200, 2),
@@ -55,20 +56,38 @@ function trackTickers(socket) {
   // every N seconds
   let timer = setInterval(function () {
     getQuotes(socket);
-  }, FETCH_INTERVAL);
-  
-  socket.on('change-interval', data => {
-    console.log(data);
-    FETCH_INTERVAL = data;
+  }, FETCH_INTERVAL.value);
+
+  socket.on('change-interval', (userValue) => {
+    const intervalValue = getIntervalValue(userValue, socket);
+
     clearInterval(timer);
     timer = setInterval(function () {
       getQuotes(socket);
-    }, FETCH_INTERVAL);
+    }, intervalValue);
   });
 
   socket.on('disconnect', function () {
     clearInterval(timer);
   });
+}
+
+function getIntervalValue(userValue, socket) {
+  const { value, minValue } = FETCH_INTERVAL;
+  const _userValue = Number(userValue);
+
+  if (!_userValue) return value;
+
+  if (_userValue >= minValue) {
+    return _userValue;
+  }
+
+  const messageValue = minValue / 1000;
+  socket.emit('valueError', {
+    error: `Value must be bigger then ${messageValue}s. Current value: ${messageValue}s`,
+  });
+
+  return minValue;
 }
 
 const app = express();
@@ -85,7 +104,7 @@ app.get('/', function (req, res) {
   res.sendFile(__dirname + '/index.html');
 });
 
-socketServer.on('connection', socket => {
+socketServer.on('connection', (socket) => {
   socket.on('start', () => {
     trackTickers(socket);
   });

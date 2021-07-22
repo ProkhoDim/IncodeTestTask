@@ -1,42 +1,55 @@
 import React, { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
+import TrackerList from './Components/TrackerList/TrackerList';
 
 const socket = io.connect('http://localhost:4000');
 
 function App() {
-  const [data, setData] = useState(null);
-  const [input, setInput] = useState(0);
+  const [data, setData] = useState([]);
+  const [input, setInput] = useState(1);
+  const [currentInterval, setCurrentInterval] = useState(null);
 
   useEffect(() => {
     socket.emit('start');
 
-    socket.on('ticker', data => {
+    socket.on('ticker', (data) => {
       setData(data);
     });
   }, []);
 
   const changeInterval = () => {
     console.log('send');
-    socket.emit('change-interval', input);
-  }
+    const value = input * 1000;
+    socket.emit('change-interval', value);
+    setCurrentInterval(input);
+    socket.on('valueError', (error) => {
+      console.log(error);
+      setCurrentInterval(error.value);
+    });
+  };
 
-  // useEffect(() => {
-  //   socket.on('ticker', data => {
-  //     setData(prevState => prevState++)
-  //     console.log(data)});
-  // }, [data]);
   return (
     <div className="App">
-      <div>{JSON.stringify(data)}</div>
+      {data.length && <TrackerList trackerList={data} />}
       <div>
-        <input
-          type="number"
-          value={input}
-          onInput={({ target: { value } }) => {
-            setInput(Number(value));
-          }}
-        ></input>
-        <button onClick={() => changeInterval()}>Send</button>
+        <label>
+          Input interval time in seconds
+          <input
+            type="range"
+            value={input}
+            min={1}
+            max={10}
+            step={1}
+            // onBlur={() => changeInterval()}
+            onInput={({ target: { value } }) => {
+              setInput(Number(value));
+              console.log(value);
+            }}
+          />
+        </label>
+
+        <button onClick={() => changeInterval()}>Change Interval</button>
+        <span>Current interval: {currentInterval}s</span>
       </div>
     </div>
   );
