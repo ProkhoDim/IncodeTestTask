@@ -1,0 +1,14 @@
+.tickerList {
+  width: 728px;
+  margin: 0 auto;
+  border-collapse: collapse;
+  margin-bottom: 30px;
+}
+
+.tickerListThRow {
+  font-size: 18px;
+}
+
+.theadTd:nth-child(n + 2) {
+  text-align: center;
+}

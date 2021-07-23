@@ -1,0 +1,42 @@
+.listItem {
+  border-bottom-width: 1px;
+  border-bottom: 1px solid rgb(112, 160, 179);
+}
+
+.ticker {
+  font-size: 16px;
+  padding: 5px;
+  border-radius: 3px;
+}
+
+.itemTd {
+  padding: 5px;
+  color: rgb(119, 119, 119);
+}
+
+.itemTd:nth-child(2) {
+  width: 12%;
+}
+
+.itemTd:nth-child(3),
+.itemTd:nth-child(4) {
+  width: 15%;
+  text-align: center;
+}
+.itemTd:nth-child(5),
+.itemTd:nth-child(6),
+.itemTd:nth-child(7) {
+  width: 12%;
+  text-align: right;
+}
+
+.tickerName {
+  text-align: center;
+}
+
+.tickerWrap {
+  width: 70%;
+  border-radius: 4px;
+  padding: 10px;
+  margin: 10px 0;
+}

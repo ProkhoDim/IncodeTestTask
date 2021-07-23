@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
-import TrackerList from './Components/TrackerList/TrackerList';
+import TrackerList from './Components/TickerList/TickerList';
 
 const socket = io.connect('http://localhost:4000');
 
@@ -11,17 +11,21 @@ function App() {
 
   useEffect(() => {
     socket.emit('start');
-
     socket.on('ticker', (data) => {
       setData(data);
     });
+
+    return () => {
+      socket.on('disconnect');
+    };
   }, []);
 
   const changeInterval = () => {
-    console.log('send');
     const value = input * 1000;
+
     socket.emit('change-interval', value);
     setCurrentInterval(input);
+
     socket.on('valueError', (error) => {
       console.log(error);
       setCurrentInterval(error.value);
@@ -29,7 +33,16 @@ function App() {
   };
 
   return (
-    <div className="App">
+    <div className="appWrap">
+      <div className="dateAndTime">
+        <div className="date">
+          Date: {data.length && data[0].last_trade_time.split('T')[0]}
+        </div>
+        <div className="time">
+          Time:{' '}
+          {data.length && data[0].last_trade_time.split('T')[1].split('.')[0]}
+        </div>
+      </div>
       {data.length && <TrackerList trackerList={data} />}
       <div>
         <label>
