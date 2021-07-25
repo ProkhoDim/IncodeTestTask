@@ -59,6 +59,8 @@ function trackTickers(socket) {
   let timer = setInterval(function () {
     getQuotes(socket);
   }, FETCH_INTERVAL.value);
+  
+  socket.emit('interval', FETCH_INTERVAL.value);
 
   socket.on('change-interval', (userValue) => {
     const intervalValue = getIntervalValue(userValue, socket);

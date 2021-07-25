@@ -6,29 +6,26 @@ const socket = io.connect('http://localhost:4000');
 
 function App() {
   const [data, setData] = useState([]);
-  const [input, setInput] = useState(1);
-  const [currentInterval, setCurrentInterval] = useState(null);
+  const [intervalValue, setIntervalValue] = useState(1);
 
   useEffect(() => {
     socket.emit('start');
-    socket.on('ticker', (data) => {
+    socket.on('ticker', data => {
       setData(data);
     });
-
+    socket.on('interval', value => setIntervalValue(value / 1000));
     return () => {
       socket.on('disconnect');
     };
   }, []);
 
   const changeInterval = () => {
-    const value = input * 1000;
+    const value = intervalValue * 1000;
 
     socket.emit('change-interval', value);
-    setCurrentInterval(input);
 
-    socket.on('valueError', (error) => {
+    socket.on('valueError', error => {
       console.log(error);
-      setCurrentInterval(error.value);
     });
   };
 
@@ -49,20 +46,20 @@ function App() {
           Input interval time in seconds
           <input
             type="range"
-            value={input}
+            value={intervalValue}
             min={1}
             max={10}
             step={1}
             // onBlur={() => changeInterval()}
             onInput={({ target: { value } }) => {
-              setInput(Number(value));
+              setIntervalValue(Number(value));
               console.log(value);
             }}
           />
         </label>
 
         <button onClick={() => changeInterval()}>Change Interval</button>
-        <span>Current interval: {currentInterval}s</span>
+        <span>Current interval: {intervalValue}s</span>
       </div>
     </div>
   );
